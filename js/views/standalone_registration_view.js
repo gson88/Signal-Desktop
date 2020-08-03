@@ -106,6 +106,8 @@
         this.accountManager
           .requestSMSVerification(number)
           .catch(this.displayError.bind(this));
+
+        this.$('#code').focus();
         this.$('#step2')
           .addClass('in')
           .fadeIn();
