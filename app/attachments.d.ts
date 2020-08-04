@@ -13,4 +13,4 @@ export type SaveMultipleFilesResult = {
 export function saveMultipleAttachmentsToDisk(options: {
   attachments: Attachment[];
   baseFileName: string;
-}): Promise<SaveMultipleFilesResult>;
+}): Promise<SaveMultipleFilesResult | null>;

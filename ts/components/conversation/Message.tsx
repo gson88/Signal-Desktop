@@ -1029,27 +1029,19 @@ export class Message extends React.PureComponent<Props, State> {
       !isSticker && !isTapToView && firstAttachment && !firstAttachment.pending;
 
     const downloadButton = shouldShowDownloadButton ? (
-      multipleAttachments ? (
-        <div
-          onClick={this.downloadMultipleGenericAttachments}
-          // This a menu meant for mouse use only
-          role="button"
-          className={classNames(
-            'module-message__buttons__download',
-            `module-message__buttons__download--${direction}`
-          )}
-        />
-      ) : (
-        <div
-          onClick={this.openGenericAttachment}
-          // This a menu meant for mouse use only
-          role="button"
-          className={classNames(
-            'module-message__buttons__download',
-            `module-message__buttons__download--${direction}`
-          )}
-        />
-      )
+      <div
+        onClick={
+          multipleAttachments
+            ? this.downloadAllAttachments
+            : this.openGenericAttachment
+        }
+        // This a menu meant for mouse use only
+        role="button"
+        className={classNames(
+          'module-message__buttons__download',
+          `module-message__buttons__download--${direction}`
+        )}
+      />
     ) : null;
 
     const reactButton = (
@@ -1866,7 +1858,7 @@ export class Message extends React.PureComponent<Props, State> {
     });
   };
 
-  public downloadMultipleGenericAttachments = (event?: React.MouseEvent) => {
+  public downloadAllAttachments = (event?: React.MouseEvent) => {
     const { attachments, timestamp } = this.props;
 
     event?.preventDefault();

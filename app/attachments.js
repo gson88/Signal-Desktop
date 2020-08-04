@@ -11,7 +11,7 @@ const { map, isArrayBuffer, isString } = require('lodash');
 const normalizePath = require('normalize-path');
 const sanitizeFilename = require('sanitize-filename');
 const getGuid = require('uuid/v4');
-const { addIndexToFileName } = require('../ts/types/Attachment');
+const { addIndexToFileName } = require('../ts/util/addIndexToFileName');
 
 let xattr;
 try {
@@ -279,7 +279,7 @@ exports.saveMultipleAttachmentsToDisk = async ({
     browserWindow,
     {
       defaultPath: baseFileName,
-      properties: ['openDirectory', 'createDirectory'],
+      properties: ['createDirectory'],
     }
   );
 

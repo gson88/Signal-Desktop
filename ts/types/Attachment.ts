@@ -1,7 +1,6 @@
 import is from '@sindresorhus/is';
 import moment from 'moment';
 import { isNumber, padStart } from 'lodash';
-import path from 'path';
 
 import * as MIME from './MIME';
 import { SignalService } from '../protobuf';
@@ -379,7 +378,7 @@ export const saveMultiple = async ({
   readAttachmentData,
   saveMultipleAttachmentsToDisk,
 }: SaveMultipleAttachmentsArguments): Promise<SaveMultipleFilesResult | null> => {
-  const mappedDataPromises: Promise<Attachment>[] = attachments.map(
+  const mapDataPromises: Promise<Attachment>[] = attachments.map(
     async attachment => ({
       ...attachment,
       data: attachment.path
@@ -394,11 +393,13 @@ export const saveMultiple = async ({
     timestamp,
   });
 
-  const datas = await Promise.all(mappedDataPromises);
-  const goodDatas = datas.filter(attachment => Boolean(attachment.data));
+  const mappedData = await Promise.all(mapDataPromises);
+  const validMappedData = mappedData.filter(attachment =>
+    Boolean(attachment.data)
+  );
 
   return await saveMultipleAttachmentsToDisk({
-    attachments: goodDatas,
+    attachments: validMappedData,
     baseFileName,
   });
 };
@@ -425,29 +426,6 @@ export const getSuggestedFilename = ({
   const indexSuffix = index ? `_${padStart(index.toString(), 3, '0')}` : '';
 
   return `${prefix}${suffix}${indexSuffix}${extension}`;
-};
-
-export const addIndexToFileName = ({
-  fileName,
-  index,
-  paddingMaxLength = 3,
-}: {
-  fileName: string;
-  index: number;
-  paddingMaxLength?: number;
-}): string => {
-  const extension = path.extname(fileName);
-  const indexString = '-'.concat(
-    index.toString().padStart(paddingMaxLength, '0')
-  );
-
-  if (extension) {
-    const extensionRegex = new RegExp(`${extension}$`);
-    const noExtension = fileName.replace(extensionRegex, '');
-    return noExtension.concat(indexString).concat(extension);
-  }
-
-  return fileName.concat(indexString);
 };
 
 export const getFileExtension = (
