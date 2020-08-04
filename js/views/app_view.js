@@ -9,7 +9,7 @@
   window.Whisper = window.Whisper || {};
 
   function resolveTheme() {
-    const theme = storage.get('theme-setting') || 'dark';
+    const theme = storage.get('theme-setting') || 'system';
     if (theme === 'system') {
       return window.systemTheme;
     }
