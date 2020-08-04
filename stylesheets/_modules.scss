@@ -160,6 +160,30 @@
   }
 }
 
+.module-message__buttons__download--multiple {
+  @include light-theme {
+    @include color-svg(
+      '../images/icons/v2/save-solid-24.svg',
+      $color-gray-45
+    );
+    &:hover {
+      @include color-svg(
+        '../images/icons/v2/save-solid-24.svg',
+        $color-gray-90
+      );
+    }
+  }
+  @include dark-theme {
+    @include color-svg('../images/icons/v2/save-solid-24.svg', $color-gray-45);
+    &:hover {
+      @include color-svg(
+        '../images/icons/v2/save-solid-24.svg',
+        $color-gray-02
+      );
+    }
+  }
+}
+
 .module-message__buttons__react {
   height: 24px;
   width: 24px;

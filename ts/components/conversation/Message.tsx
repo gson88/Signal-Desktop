@@ -1039,7 +1039,10 @@ export class Message extends React.PureComponent<Props, State> {
         role="button"
         className={classNames(
           'module-message__buttons__download',
-          `module-message__buttons__download--${direction}`
+          `module-message__buttons__download--${direction}`,
+          {
+            'module-message__buttons__download--multiple': multipleAttachments,
+          }
         )}
       />
     ) : null;
@@ -1174,20 +1177,28 @@ export class Message extends React.PureComponent<Props, State> {
     const showRetry = status === 'error' && direction === 'outgoing';
     const multipleAttachments = attachments && attachments.length > 1;
 
+    const showDownload =
+      !isSticker && !isTapToView && attachments && attachments.length > 0;
+
     const menu = (
       <ContextMenu id={triggerId}>
-        {!isSticker &&
-        !multipleAttachments &&
-        !isTapToView &&
-        attachments &&
-        attachments[0] ? (
+        {showDownload ? (
           <MenuItem
             attributes={{
               className: 'module-message__context__download',
             }}
-            onClick={this.openGenericAttachment}
+            onClick={
+              multipleAttachments
+                ? this.downloadAllAttachments
+                : this.openGenericAttachment
+            }
           >
-            {i18n('downloadAttachment')}
+            {i18n(
+              classNames({
+                downloadAttachment: !multipleAttachments,
+                downloadAllAttachments: multipleAttachments,
+              })
+            )}
           </MenuItem>
         ) : null}
         {canReply ? (
@@ -1840,8 +1851,10 @@ export class Message extends React.PureComponent<Props, State> {
   public openGenericAttachment = (event?: React.MouseEvent) => {
     const { attachments, downloadAttachment, timestamp } = this.props;
 
-    event?.preventDefault();
-    event?.stopPropagation();
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
 
     if (!attachments) {
       return;
@@ -1861,8 +1874,10 @@ export class Message extends React.PureComponent<Props, State> {
   public downloadAllAttachments = (event?: React.MouseEvent) => {
     const { attachments, timestamp } = this.props;
 
-    event?.preventDefault();
-    event?.stopPropagation();
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
 
     if (!attachments || attachments.length === 0) {
       return;
@@ -1875,7 +1890,7 @@ export class Message extends React.PureComponent<Props, State> {
     this.props.downloadMultipleAttachments({
       attachments,
       timestamp,
-      isAnyFileDangerous: isAnyFileDangerous,
+      isAnyFileDangerous,
     });
   };
 
