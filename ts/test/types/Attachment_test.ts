@@ -71,6 +71,40 @@ describe('Attachment', () => {
     });
   });
 
+  describe('addIndexToFileName', () => {
+    context('for filename', () => {
+      it('should work', () => {
+        const actual = Attachment.addIndexToFileName({ fileName: 'funny-cat.mov', index: 4 });
+        const expected = 'funny-cat-004.mov';
+        assert.strictEqual(actual, expected);
+      });
+
+      it('should maybe work', () => {
+        const actual = Attachment.addIndexToFileName({ fileName: 'funny-cat', index: 4 });
+        const expected = 'funny-cat-004';
+        assert.strictEqual(actual, expected);
+      });
+
+      it('should maybe work too', () => {
+        const actual = Attachment.addIndexToFileName({ fileName: 'funny-cat.mov.gif', index: 4 });
+        const expected = 'funny-cat.mov-004.gif';
+        assert.strictEqual(actual, expected);
+      });
+
+      it('should destroy stuff', () => {
+        const actual = Attachment.addIndexToFileName({ fileName: 'funny-cat.gif.cat.gif.gif', index: 4 });
+        const expected = 'funny-cat.gif.cat.gif-004.gif';
+        assert.strictEqual(actual, expected);
+      });
+
+      it('should destroy stuff too', () => {
+        const actual = Attachment.addIndexToFileName({ fileName: 'funny-cat.gif.cat.gif.gif.cat', index: 4 });
+        const expected = 'funny-cat.gif.cat.gif.gif-004.cat';
+        assert.strictEqual(actual, expected);
+      });
+    });
+  });
+
   describe('isVisualMedia', () => {
     it('should return true for images', () => {
       const attachment: Attachment.Attachment = {

@@ -1,6 +1,7 @@
 import is from '@sindresorhus/is';
 import moment from 'moment';
 import { isNumber, padStart } from 'lodash';
+import path from 'path';
 
 import * as MIME from './MIME';
 import { SignalService } from '../protobuf';
@@ -379,23 +380,27 @@ export const saveMultiple = async ({
   saveMultipleAttachmentsToDisk,
 }: SaveMultipleAttachmentsArguments): Promise<SaveMultipleFilesResult | null> => {
   const mappedDataPromises: Promise<Attachment>[] = attachments.map(
-    async (attachment, index) => ({
+    async attachment => ({
       ...attachment,
-      fileName: getSuggestedFilename({
-        attachment,
-        timestamp,
-        index: index + 1,
-      }),
       data: attachment.path
         ? await readAttachmentData(attachment.path)
         : attachment.data,
     })
   );
 
+  const baseFileName = getSuggestedFilename({
+    attachment: attachments[0],
+    index: 0,
+    timestamp,
+  });
+
   const datas = await Promise.all(mappedDataPromises);
   const goodDatas = datas.filter(attachment => Boolean(attachment.data));
 
-  return await saveMultipleAttachmentsToDisk({ attachments: goodDatas });
+  return await saveMultipleAttachmentsToDisk({
+    attachments: goodDatas,
+    baseFileName,
+  });
 };
 
 export const getSuggestedFilename = ({
@@ -420,6 +425,29 @@ export const getSuggestedFilename = ({
   const indexSuffix = index ? `_${padStart(index.toString(), 3, '0')}` : '';
 
   return `${prefix}${suffix}${indexSuffix}${extension}`;
+};
+
+export const addIndexToFileName = ({
+  fileName,
+  index,
+  paddingMaxLength = 3,
+}: {
+  fileName: string;
+  index: number;
+  paddingMaxLength?: number;
+}): string => {
+  const extension = path.extname(fileName);
+  const indexString = '-'.concat(
+    index.toString().padStart(paddingMaxLength, '0')
+  );
+
+  if (extension) {
+    const extensionRegex = new RegExp(`${extension}$`);
+    const noExtension = fileName.replace(extensionRegex, '');
+    return noExtension.concat(indexString).concat(extension);
+  }
+
+  return fileName.concat(indexString);
 };
 
 export const getFileExtension = (

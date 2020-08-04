@@ -11,6 +11,7 @@ const { map, isArrayBuffer, isString } = require('lodash');
 const normalizePath = require('normalize-path');
 const sanitizeFilename = require('sanitize-filename');
 const getGuid = require('uuid/v4');
+const { addIndexToFileName } = require('../ts/types/Attachment');
 
 let xattr;
 try {
@@ -264,31 +265,35 @@ exports.saveAttachmentToDisk = async ({ data, name }) => {
 
 /**
  * @param {Attachment[]} attachments
+ * @param {string} baseFileName
  * @return {Promise<null|import('./attachments.d.ts').SaveMultipleFilesResult>}
  */
-exports.saveMultipleAttachmentsToDisk = async ({ attachments }) => {
+exports.saveMultipleAttachmentsToDisk = async ({
+  attachments,
+  baseFileName,
+}) => {
   const dialogToUse = dialog || remote.dialog;
   const browserWindow = remote.getCurrentWindow();
 
-  const { canceled, filePaths } = await dialogToUse.showOpenDialog(
+  const { canceled, filePath } = await dialogToUse.showSaveDialog(
     browserWindow,
     {
-      defaultPath: attachments[0].fileName,
+      defaultPath: baseFileName,
       properties: ['openDirectory', 'createDirectory'],
     }
   );
 
-  if (canceled) {
+  if (canceled || !filePath) {
     return null;
   }
 
-  if (filePaths.length !== 1) {
-    return null;
-  }
-  const folderPath = filePaths[0];
+  const folderPath = path.dirname(filePath);
 
-  const writeFilesPromises = attachments.map(async attachment => {
-    const fullPath = path.join(folderPath, attachment.fileName);
+  const writeFilesPromises = attachments.map(async (attachment, index) => {
+    const fullPath = addIndexToFileName({
+      fileName: filePath,
+      index: index + 1,
+    });
 
     await writeWithAttributes(fullPath, Buffer.from(attachment.data));
 
