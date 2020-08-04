@@ -1052,37 +1052,6 @@ export class Message extends React.PureComponent<Props, State> {
       )
     ) : null;
 
-    // const downloadButton =
-    //   !isSticker &&
-    //   !multipleAttachments &&
-    //   !isTapToView &&
-    //   firstAttachment &&
-    //   !firstAttachment.pending ? (
-    //     <div
-    //       onClick={this.openGenericAttachment}
-    //       // This a menu meant for mouse use only
-    //       role="button"
-    //       className={classNames(
-    //         'module-message__buttons__download',
-    //         `module-message__buttons__download--${direction}`
-    //       )}
-    //     />
-    //   ) : !isSticker &&
-    //     multipleAttachments &&
-    //     !isTapToView &&
-    //     firstAttachment &&
-    //     !firstAttachment.pending ? (
-    //     <div
-    //       onClick={this.openMultipleGenericAttachment}
-    //       // This a menu meant for mouse use only
-    //       role="button"
-    //       className={classNames(
-    //         'module-message__buttons__download',
-    //         `module-message__buttons__download--${direction}`
-    //       )}
-    //     />
-    //   ) : null;
-
     const reactButton = (
       <Reference>
         {({ ref: popperRef }) => {

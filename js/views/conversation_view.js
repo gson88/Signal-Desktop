@@ -299,11 +299,6 @@
         'save-attachment',
         this.downloadAttachmentWrapper
       );
-      // this.listenTo(
-      //   this.model,
-      //   'save-multiple-attachments',
-      //   this.downloadAttachmentWrapper
-      // );
       this.listenTo(this.model, 'delete-message', this.deleteMessage);
       this.listenTo(this.model, 'remove-link-review', this.removeLinkPreview);
       this.listenTo(
