@@ -11,7 +11,6 @@ const { map, isArrayBuffer, isString } = require('lodash');
 const normalizePath = require('normalize-path');
 const sanitizeFilename = require('sanitize-filename');
 const getGuid = require('uuid/v4');
-const { getSuggestedFilename } = require('../ts/types/Attachment');
 
 let xattr;
 try {
@@ -265,23 +264,17 @@ exports.saveAttachmentToDisk = async ({ data, name }) => {
 
 /**
  * @param {Attachment[]} attachments
- * @param {number} timestamp
- * @returns {Promise<{fillPath: string,name:string}[]|null>}
+ * @return {Promise<null|import('./attachments.d.ts').SaveMultipleFilesResult>}
  */
-exports.saveMultipleAttachmentsToDisk = async ({ attachments, timestamp }) => {
-  console.log('app/attachments.js - saveMultipleAttachmentsToDisk', {
-    attachments,
-    timestamp,
-  });
+exports.saveMultipleAttachmentsToDisk = async ({ attachments }) => {
   const dialogToUse = dialog || remote.dialog;
   const browserWindow = remote.getCurrentWindow();
 
   const { canceled, filePaths } = await dialogToUse.showOpenDialog(
     browserWindow,
     {
-      defaultPath: name,
+      defaultPath: attachments[0].fileName,
       properties: ['openDirectory', 'createDirectory'],
-      filters: ['/'],
     }
   );
 
@@ -289,26 +282,26 @@ exports.saveMultipleAttachmentsToDisk = async ({ attachments, timestamp }) => {
     return null;
   }
 
-  myLog({ filePaths });
   if (filePaths.length !== 1) {
     return null;
   }
-
   const folderPath = filePaths[0];
 
-  return Promise.all(
-    attachments.map(async (attachment, index) => {
-      const fileName = getSuggestedFilename({ attachment, timestamp, index });
-      const fullPath = path.join(folderPath, fileName);
-      myLog('writing file:', fullPath, attachment);
-      await writeWithAttributes(fullPath, Buffer.from(attachment.data));
+  const writeFilesPromises = attachments.map(async attachment => {
+    const fullPath = path.join(folderPath, attachment.fileName);
 
-      return {
-        fullPath,
-        name: fileName,
-      };
-    })
-  );
+    await writeWithAttributes(fullPath, Buffer.from(attachment.data));
+
+    return {
+      fullPath,
+      name: attachment.fileName,
+    };
+  });
+
+  return {
+    folder: folderPath,
+    files: await Promise.all(writeFilesPromises),
+  };
 };
 
 exports.openFileInFolder = async target => {

@@ -148,6 +148,44 @@
       return { toastMessage: i18n('attachmentSaved') };
     },
   });
+  Whisper.FilesSavedToast = Whisper.ToastView.extend({
+    className: 'toast toast-clickable',
+    initialize(options) {
+      if (!options.fullPath) {
+        throw new Error('FilesSavedToast: name option was not provided!');
+      }
+      this.fullPath = options.fullPath;
+      this.timeout = 10000;
+
+      if (window.getInteractionMode() === 'keyboard') {
+        setTimeout(() => {
+          this.$el.focus();
+        }, 1);
+      }
+    },
+    events: {
+      click: 'onClick',
+      keydown: 'onKeydown',
+    },
+    onClick() {
+      openFileInFolder(this.fullPath);
+      this.close();
+    },
+    onKeydown(event) {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      openFileInFolder(this.fullPath);
+      this.close();
+    },
+    render_attributes() {
+      return { toastMessage: i18n('attachmentsSaved') };
+    },
+  });
   Whisper.ReactionFailedToast = Whisper.ToastView.extend({
     className: 'toast toast-clickable',
     initialize() {
@@ -236,8 +274,6 @@
       };
     },
     initialize(options) {
-      myLog('ConversationView - initialize', this);
-
       // Events on Conversation model
       this.listenTo(this.model, 'destroy', this.stopListening);
       this.listenTo(this.model, 'change:verified', this.onVerifiedChange);
@@ -1445,7 +1481,6 @@
     },
 
     async handleImageAttachment(file) {
-      myLog('handleImageAttachment', file);
       if (MIME.isJPEG(file.type)) {
         const rotatedDataUrl = await window.autoOrientImage(file);
         const rotatedBlob = window.dataURLToBlobSync(rotatedDataUrl);
@@ -1787,7 +1822,6 @@
     },
 
     async showAllMedia() {
-      myLog('showAllMedia', this.panels);
       if (this.panels && this.panels.length > 0) {
         return;
       }
@@ -1896,7 +1930,6 @@
             }
 
             case 'media': {
-              myLog('onMediaClick');
               const selectedIndex = media.findIndex(
                 mediaMessage => mediaMessage.attachment.path === attachment.path
               );
@@ -2051,16 +2084,12 @@
     },
 
     downloadAttachmentWrapper(messageId) {
-      myLog('downloadAttachmentWrapper', messageId);
-
       const message = this.model.messageCollection.get(messageId);
       if (!message) {
         throw new Error(
           `downloadAttachmentWrapper: Did not find message for id ${messageId}`
         );
       }
-
-      myLog('downloadAttachmentWrapper message', message);
 
       const { attachments, sent_at: timestamp } = message.attributes;
       if (!attachments || attachments.length < 1) {
@@ -2076,12 +2105,6 @@
     },
 
     async downloadAttachment({ attachment, timestamp, isDangerous }) {
-      myLog('ConversationView - downloadAttachment', {
-        attachment,
-        timestamp,
-        isDangerous,
-      });
-
       if (isDangerous) {
         this.showToast(Whisper.DangerousFileTypeToast);
         return;
@@ -2094,13 +2117,6 @@
         timestamp,
       });
 
-      myLog({
-        attachment,
-        timestamp,
-        isDangerous,
-        fullPath,
-      });
-
       if (fullPath) {
         this.showToast(Whisper.FileSavedToast, { fullPath });
       }
@@ -2111,29 +2127,20 @@
       timestamp,
       isAnyFileDangerous,
     }) {
-      myLog('ConversationView - downloadMultipleAttachments', {
-        attachments,
-        timestamp,
-        isAnyFileDangerous,
-        saveMultipleAttachmentsToDisk,
-      });
-
       if (isAnyFileDangerous) {
         this.showToast(Whisper.DangerousFileTypeToast);
         return;
       }
 
-      const writtenFiles = await Signal.Types.Attachment.saveMultiple({
+      const result = await Signal.Types.Attachment.saveMultiple({
         attachments,
         readAttachmentData,
         saveMultipleAttachmentsToDisk,
         timestamp,
       });
 
-      myLog({ writtenFiles });
-
-      if (writtenFiles) {
-        this.showToast(Whisper.FileSavedToast, { fullPath: 'Lots' });
+      if (result && result.folder) {
+        this.showToast(Whisper.FilesSavedToast, { fullPath: result.folder });
       }
     },
 
@@ -2261,7 +2268,6 @@
     },
 
     showLightbox({ attachment, messageId }) {
-      myLog('showLightbox');
       const message = this.model.messageCollection.get(messageId);
       if (!message) {
         throw new Error(
@@ -2286,8 +2292,6 @@
       }
 
       const attachments = message.get('attachments') || [];
-
-      myLog('showLightbox', { message, attachments });
 
       const media = attachments
         .filter(item => item.thumbnail && !item.pending && !item.error)
@@ -2330,7 +2334,6 @@
       );
 
       const onSave = async (options = {}) => {
-        myLog('onSave', options);
         const fullPath = await Signal.Types.Attachment.save({
           attachment: options.attachment,
           index: options.index + 1,
@@ -2382,7 +2385,6 @@
       };
 
       const props = message.getPropsForMessageDetail();
-      myLog('props:', props);
       const view = new Whisper.ReactWrapperView({
         className: 'panel message-detail-wrapper',
         Component: Signal.Components.MessageDetail,
@@ -2897,7 +2899,6 @@
     },
 
     async makeChunkedRequest(url) {
-      myLog('makeChunkedRequest', url);
       const PARALLELISM = 3;
       const first = await textsecure.messaging.makeProxiedRequest(url, {
         start: 0,
@@ -3024,7 +3025,6 @@
     },
 
     async getPreview(url) {
-      myLog('getPreview', url);
       if (window.Signal.LinkPreviews.isStickerPack(url)) {
         return this.getStickerPackPreview(url);
       }
@@ -3101,7 +3101,6 @@
     },
 
     async addLinkPreview(url) {
-      myLog('addLinkPreview', url);
       (this.preview || []).forEach(item => {
         if (item.url) {
           URL.revokeObjectURL(item.url);
@@ -3185,8 +3184,6 @@
     },
 
     getLinkPreview() {
-      myLog('getLinkPreview');
-
       // Don't generate link previews if user has turned them off
       if (!storage.get('linkPreviews', false)) {
         return [];

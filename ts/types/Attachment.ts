@@ -9,7 +9,10 @@ import {
   isVideoTypeSupported,
 } from '../util/GoogleChrome';
 import { LocalizerType } from './Util';
-import { saveMultipleAttachmentsToDisk } from '../../app/attachments';
+import {
+  SaveMultipleFilesResult,
+  saveMultipleAttachmentsToDisk,
+} from '../../app/attachments';
 
 const MAX_WIDTH = 300;
 const MAX_HEIGHT = MAX_WIDTH * 1.5;
@@ -362,7 +365,7 @@ export const save = async ({
   return result.fullPath;
 };
 
-export interface MultipleAttachmentsType {
+export interface SaveMultipleAttachmentsArguments {
   attachments: Attachment[];
   readAttachmentData: (relativePath: string) => Promise<ArrayBuffer>;
   saveMultipleAttachmentsToDisk: typeof saveMultipleAttachmentsToDisk;
@@ -374,30 +377,25 @@ export const saveMultiple = async ({
   timestamp,
   readAttachmentData,
   saveMultipleAttachmentsToDisk,
-}: MultipleAttachmentsType): Promise<
-  { fillPath: string; name: string }[] | null
-> => {
-  // @ts-ignore
-  myLog('Attachments.ts - saveMultiple', {
-    attachments,
-    readAttachmentData,
-    saveMultipleAttachmentsToDisk,
-  });
-
-  const dataPromises = attachments.map(
-    async (attachment): Promise<Attachment> => ({
+}: SaveMultipleAttachmentsArguments): Promise<SaveMultipleFilesResult | null> => {
+  const mappedDataPromises: Promise<Attachment>[] = attachments.map(
+    async (attachment, index) => ({
       ...attachment,
+      fileName: getSuggestedFilename({
+        attachment,
+        timestamp,
+        index: index + 1,
+      }),
       data: attachment.path
         ? await readAttachmentData(attachment.path)
         : attachment.data,
     })
   );
 
-  const datas = await Promise.all(dataPromises);
-  return await saveMultipleAttachmentsToDisk({
-    attachments: datas,
-    timestamp,
-  });
+  const datas = await Promise.all(mappedDataPromises);
+  const goodDatas = datas.filter(attachment => Boolean(attachment.data));
+
+  return await saveMultipleAttachmentsToDisk({ attachments: goodDatas });
 };
 
 export const getSuggestedFilename = ({

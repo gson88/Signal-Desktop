@@ -1578,7 +1578,6 @@ class MessageReceiverInner extends EventTarget {
   async downloadAttachment(
     attachment: AttachmentPointerClass
   ): Promise<DownloadAttachmentType> {
-    myLog('MessageReceiver - downloadAttachment', attachment);
     const encrypted = await this.server.getAttachment(
       attachment.cdnId || attachment.cdnKey,
       attachment.cdnNumber || 0

@@ -1169,12 +1169,9 @@ async function getNextAttachmentDownloadJobs(
   limit?: number,
   options?: { timestamp?: number }
 ) {
-  myLog('getNextAttachmentDownloadJobs', { limit, options });
   return channels.getNextAttachmentDownloadJobs(limit, options);
 }
 async function saveAttachmentDownloadJob(job: AttachmentDownloadJobType) {
-  // @ts-ignore
-  myLog('saveAttachmentDownloadJob', job)
   await channels.saveAttachmentDownloadJob(_cleanData(job));
 }
 async function setAttachmentDownloadJobPending(id: string, pending: boolean) {

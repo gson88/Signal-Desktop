@@ -33,12 +33,12 @@ import {
   isImage,
   isImageAttachment,
   isVideo,
-} from '../../../ts/types/Attachment';
+} from '../../types/Attachment';
 import { AttachmentType } from '../../types/Attachment';
 import { ContactType } from '../../types/Contact';
 
 import { getIncrement } from '../../util/timer';
-import { isFileDangerous } from '../../util/isFileDangerous';
+import { isFileDangerous } from '../../util';
 import { ColorType, LocalizerType } from '../../types/Util';
 import { createRefMerger } from '../_util';
 import { ContextMenu, ContextMenuTrigger, MenuItem } from 'react-contextmenu';
@@ -1031,7 +1031,7 @@ export class Message extends React.PureComponent<Props, State> {
     const downloadButton = shouldShowDownloadButton ? (
       multipleAttachments ? (
         <div
-          onClick={this.openMultipleGenericAttachment}
+          onClick={this.downloadMultipleGenericAttachments}
           // This a menu meant for mouse use only
           role="button"
           className={classNames(
@@ -1877,15 +1877,10 @@ export class Message extends React.PureComponent<Props, State> {
   };
 
   public openGenericAttachment = (event?: React.MouseEvent) => {
-    // @ts-ignore
     const { attachments, downloadAttachment, timestamp } = this.props;
-    // @ts-ignore
-    myLog('openGenericAttachment', { props: this.props });
 
-    // if (event) {
     event?.preventDefault();
     event?.stopPropagation();
-    // }
 
     if (!attachments) {
       return;
@@ -1902,10 +1897,7 @@ export class Message extends React.PureComponent<Props, State> {
     });
   };
 
-  public openMultipleGenericAttachment = (event?: React.MouseEvent) => {
-    // @ts-ignore
-    myLog('openMultipleGenericAttachment');
-
+  public downloadMultipleGenericAttachments = (event?: React.MouseEvent) => {
     const { attachments, timestamp } = this.props;
 
     event?.preventDefault();
@@ -1914,8 +1906,6 @@ export class Message extends React.PureComponent<Props, State> {
     if (!attachments || attachments.length === 0) {
       return;
     }
-    // @ts-ignore
-    myLog('multiple attachments');
 
     const isAnyFileDangerous = attachments.some(attachment =>
       isFileDangerous(attachment.fileName || '')

@@ -835,6 +835,10 @@
       }
     }
   },
+  "attachmentsSaved": {
+    "message": "Attachments saved. Click to open folder.",
+    "description": "Shown after user selects to save multiple files"
+  },
   "you": {
     "message": "You",
     "description": "Shown when the user represented is the current user."

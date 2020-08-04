@@ -285,7 +285,6 @@ try {
   const Signal = require('./js/modules/signal');
   const i18n = require('./js/modules/i18n');
   const Attachments = require('./app/attachments');
-  myLog('preload', { Attachments })
 
   const { locale } = config;
   window.i18n = i18n.setup(locale, localeMessages);
