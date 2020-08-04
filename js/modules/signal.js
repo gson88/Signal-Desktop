@@ -123,6 +123,7 @@ function initializeMigrations({
     getTempPath,
     openFileInFolder,
     saveAttachmentToDisk,
+    saveMultipleAttachmentsToDisk,
   } = Attachments;
   const {
     getImageDimensions,
@@ -195,6 +196,7 @@ function initializeMigrations({
     readStickerData,
     readTempData,
     saveAttachmentToDisk,
+    saveMultipleAttachmentsToDisk,
     processNewAttachment: attachment =>
       MessageType.processNewAttachment(attachment, {
         writeNewAttachmentData,

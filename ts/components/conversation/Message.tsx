@@ -145,6 +145,10 @@ export type PropsActions = {
     timestamp: number;
     isDangerous: boolean;
   }) => void;
+  downloadMultipleAttachments: (options: {
+    attachments: AttachmentType[];
+    timestamp: number;
+  }) => void;
   displayTapToViewMessage: (messageId: string) => unknown;
 
   openLink: (url: string) => void;
@@ -1036,6 +1040,22 @@ export class Message extends React.PureComponent<Props, State> {
             `module-message__buttons__download--${direction}`
           )}
         />
+      ) : !isSticker &&
+        multipleAttachments &&
+        !isTapToView &&
+        firstAttachment &&
+        !firstAttachment.pending ? (
+        <div
+          onClick={this.openMultipleGenericAttachment}
+          // This a menu meant for mouse use only
+          role="button"
+          // className={classNames(
+          //   'module-message__buttons__download',
+          //   `module-message__buttons__download--${direction}`
+          // )}
+        >
+          Hello
+        </div>
       ) : null;
 
     const reactButton = (
@@ -1832,14 +1852,22 @@ export class Message extends React.PureComponent<Props, State> {
   };
 
   public openGenericAttachment = (event?: React.MouseEvent) => {
-    const { attachments, downloadAttachment, timestamp } = this.props;
+    // @ts-ignore
+    const {
+      attachments,
+      downloadAttachment,
+      // downloadMultipleAttachments,
+      timestamp,
+    } = this.props;
+    // @ts-ignore
+    myLog('openGenericAttachment', { props: this.props });
 
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
+    // if (event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    // }
 
-    if (!attachments || attachments.length !== 1) {
+    if (!attachments) {
       return;
     }
 
@@ -1852,6 +1880,51 @@ export class Message extends React.PureComponent<Props, State> {
       attachment,
       timestamp,
     });
+  };
+
+  public openMultipleGenericAttachment = (event?: React.MouseEvent) => {
+    myLog('openMultipleGenericAttachment', event);
+
+    // @ts-ignore
+    const {
+      attachments,
+      // downloadAttachment,
+      downloadMultipleAttachments,
+      timestamp,
+    } = this.props;
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    if (!attachments || attachments.length === 0) {
+      return;
+    }
+
+      myLog('multiple attachments');
+
+      downloadMultipleAttachments({ attachments, timestamp });
+      // attachments.forEach(attachment => {
+      //   downloadAttachment({ attachment, timestamp, isDangerous: false });
+      // });
+      // downloadMultipleAttachments({
+      //   attachments,
+      //   timestamp,
+      // });
+
+      // attachments.forEach((attachment) => {
+      //   myLog(attachment);
+      // });
+    }
+    //
+    // const attachment = attachments[0];
+    // const { fileName } = attachment;
+    // const isDangerous = isFileDangerous(fileName || '');
+    //
+    // downloadAttachment({
+    //   isDangerous,
+    //   attachment,
+    //   timestamp,
+    // });
   };
 
   public handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {

@@ -29,6 +29,7 @@
     readAttachmentData,
     readDraftData,
     saveAttachmentToDisk,
+    saveMultipleAttachmentsToDisk,
     upgradeMessageSchema,
     writeNewDraftData,
   } = window.Signal.Migrations;
@@ -235,6 +236,8 @@
       };
     },
     initialize(options) {
+      myLog('ConversationView - initialize', this);
+
       // Events on Conversation model
       this.listenTo(this.model, 'destroy', this.stopListening);
       this.listenTo(this.model, 'change:verified', this.onVerifiedChange);
@@ -260,6 +263,11 @@
         'save-attachment',
         this.downloadAttachmentWrapper
       );
+      // this.listenTo(
+      //   this.model,
+      //   'save-multiple-attachments',
+      //   this.downloadAttachmentWrapper
+      // );
       this.listenTo(this.model, 'delete-message', this.deleteMessage);
       this.listenTo(this.model, 'remove-link-review', this.removeLinkPreview);
       this.listenTo(
@@ -505,6 +513,9 @@
       const downloadAttachment = options => {
         this.downloadAttachment(options);
       };
+      const downloadMultipleAttachments = options => {
+        this.downloadMultipleAttachments(options);
+      };
       const displayTapToViewMessage = messageId =>
         this.displayTapToViewMessage(messageId);
       const showIdentity = conversationId => {
@@ -672,6 +683,7 @@
           deleteMessage,
           displayTapToViewMessage,
           downloadAttachment,
+          downloadMultipleAttachments,
           downloadNewVersion,
           loadNewerMessages,
           loadNewestMessages: this.loadNewestMessages.bind(this),
@@ -1433,6 +1445,7 @@
     },
 
     async handleImageAttachment(file) {
+      myLog('handleImageAttachment', file);
       if (MIME.isJPEG(file.type)) {
         const rotatedDataUrl = await window.autoOrientImage(file);
         const rotatedBlob = window.dataURLToBlobSync(rotatedDataUrl);
@@ -1774,6 +1787,7 @@
     },
 
     async showAllMedia() {
+      myLog('showAllMedia', this.panels);
       if (this.panels && this.panels.length > 0) {
         return;
       }
@@ -1882,6 +1896,7 @@
             }
 
             case 'media': {
+              myLog('onMediaClick');
               const selectedIndex = media.findIndex(
                 mediaMessage => mediaMessage.attachment.path === attachment.path
               );
@@ -2036,12 +2051,16 @@
     },
 
     downloadAttachmentWrapper(messageId) {
+      myLog('downloadAttachmentWrapper', messageId);
+
       const message = this.model.messageCollection.get(messageId);
       if (!message) {
         throw new Error(
           `downloadAttachmentWrapper: Did not find message for id ${messageId}`
         );
       }
+
+      myLog('downloadAttachmentWrapper message', message);
 
       const { attachments, sent_at: timestamp } = message.attributes;
       if (!attachments || attachments.length < 1) {
@@ -2057,6 +2076,12 @@
     },
 
     async downloadAttachment({ attachment, timestamp, isDangerous }) {
+      myLog('ConversationView - downloadAttachment', {
+        attachment,
+        timestamp,
+        isDangerous,
+      });
+
       if (isDangerous) {
         this.showToast(Whisper.DangerousFileTypeToast);
         return;
@@ -2069,8 +2094,48 @@
         timestamp,
       });
 
+      myLog({
+        attachment,
+        timestamp,
+        isDangerous,
+        fullPath,
+      });
+
       if (fullPath) {
         this.showToast(Whisper.FileSavedToast, { fullPath });
+      }
+    },
+
+    async downloadMultipleAttachments({ attachments, timestamp, isDangerous }) {
+      myLog('ConversationView - downloadMultipleAttachments', {
+        attachments,
+        timestamp,
+        isDangerous,
+        saveMultipleAttachmentsToDisk,
+      });
+
+      if (isDangerous) {
+        this.showToast(Whisper.DangerousFileTypeToast);
+        return;
+      }
+
+      const writtenFiles = await Signal.Types.Attachment.saveMultiple({
+        attachments,
+        readAttachmentData,
+        saveMultipleAttachmentsToDisk,
+        timestamp,
+      });
+
+      myLog({
+        writtenFiles,
+        // attachments,
+        // timestamp,
+        // isDangerous,
+        // fullPath2,
+      });
+
+      if (writtenFiles) {
+        this.showToast(Whisper.FileSavedToast, { fullPath: 'Lots' });
       }
     },
 
@@ -2198,6 +2263,7 @@
     },
 
     showLightbox({ attachment, messageId }) {
+      myLog('showLightbox');
       const message = this.model.messageCollection.get(messageId);
       if (!message) {
         throw new Error(
@@ -2222,6 +2288,8 @@
       }
 
       const attachments = message.get('attachments') || [];
+
+      myLog('showLightbox', { message, attachments });
 
       const media = attachments
         .filter(item => item.thumbnail && !item.pending && !item.error)
@@ -2264,6 +2332,7 @@
       );
 
       const onSave = async (options = {}) => {
+        myLog('onSave', options);
         const fullPath = await Signal.Types.Attachment.save({
           attachment: options.attachment,
           index: options.index + 1,
@@ -2315,6 +2384,7 @@
       };
 
       const props = message.getPropsForMessageDetail();
+      myLog('props:', props);
       const view = new Whisper.ReactWrapperView({
         className: 'panel message-detail-wrapper',
         Component: Signal.Components.MessageDetail,
@@ -2829,6 +2899,7 @@
     },
 
     async makeChunkedRequest(url) {
+      myLog('makeChunkedRequest', url);
       const PARALLELISM = 3;
       const first = await textsecure.messaging.makeProxiedRequest(url, {
         start: 0,
@@ -2955,6 +3026,7 @@
     },
 
     async getPreview(url) {
+      myLog('getPreview', url);
       if (window.Signal.LinkPreviews.isStickerPack(url)) {
         return this.getStickerPackPreview(url);
       }
@@ -3031,6 +3103,7 @@
     },
 
     async addLinkPreview(url) {
+      myLog('addLinkPreview', url);
       (this.preview || []).forEach(item => {
         if (item.url) {
           URL.revokeObjectURL(item.url);
@@ -3114,6 +3187,8 @@
     },
 
     getLinkPreview() {
+      myLog('getLinkPreview');
+
       // Don't generate link previews if user has turned them off
       if (!storage.get('linkPreviews', false)) {
         return [];

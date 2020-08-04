@@ -361,6 +361,71 @@ export const save = async ({
   return result.fullPath;
 };
 
+export interface MultipleAttachmentsType {
+  attachments: Attachment[];
+  readAttachmentData: (relativePath: string) => Promise<ArrayBuffer>;
+  saveMultipleAttachmentsToDisk: (options: {
+    attachments: Attachment[];
+    timestamp: number;
+  }) => Promise<{ name: string; fullPath: string }[]>;
+  timestamp: number;
+}
+
+export const saveMultiple = async ({
+  attachments,
+  timestamp,
+  readAttachmentData,
+  saveMultipleAttachmentsToDisk,
+}: MultipleAttachmentsType): Promise<{ name: string; fullPath: string }[]> => {
+  myLog('Attachments.ts - saveMultiple', {
+    attachments,
+    readAttachmentData,
+    saveMultipleAttachmentsToDisk,
+  });
+
+  const dataPromises = attachments.map(
+    async (attachment, index): Promise<Attachment> => ({
+      data: attachment.path
+        ? await readAttachmentData(attachment.path)
+        : attachment.data,
+      fileName: getSuggestedFilename({ attachment, index, timestamp }),
+      contentType: attachment.contentType,
+    })
+  );
+
+  const datas = await Promise.all(dataPromises);
+
+  const filePaths = await saveMultipleAttachmentsToDisk({
+    attachments: datas,
+    timestamp,
+  });
+  return filePaths;
+  // const promises = attachments.map(async attachment => {
+  //   if (!attachment.path && !attachment.data) {
+  //     throw new Error('Attachment had neither path nor data');
+  //   }
+  //
+  //   const data = attachment.path
+  //     ? await readAttachmentData(attachment.path)
+  //     : attachment.data;
+  //   const name = getSuggestedFilename({ attachment, timestamp, index });
+  //
+  //   const result = await saveAttachmentToDisk({
+  //     data,
+  //     name,
+  //   });
+  //
+  //   if (!result) {
+  //     return null;
+  //   }
+  //
+  //   return result.fullPath;
+  // });
+  //
+  // const result = await Promise.all(promises);
+  // return result;
+};
+
 export const getSuggestedFilename = ({
   attachment,
   timestamp,

@@ -43,6 +43,7 @@ const getDefaultProps = () => ({
   showContactDetail: action('showContactDetail'),
   showVisualAttachment: action('showVisualAttachment'),
   downloadAttachment: action('downloadAttachment'),
+  downloadMultipleAttachments: action('downloadMultipleAttachments'),
   displayTapToViewMessage: action('displayTapToViewMessage'),
   showExpiredIncomingTapToViewToast: action(
     'showExpiredIncomingTapToViewToast'

@@ -28,7 +28,7 @@ module.exports = {
     'more/no-then': 'error',
 
     // it helps readability to put public API at top,
-    'no-use-before-define': 'off',
+    // 'no-use-before-define': 'off',
 
     // useful for unused or internal fields
     'no-underscore-dangle': 'off',

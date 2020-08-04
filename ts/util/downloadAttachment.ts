@@ -10,6 +10,8 @@ type AttachmentData = AttachmentPointerClass & {
 export async function downloadAttachment(
   attachmentData: AttachmentData
 ): Promise<DownloadAttachmentType | null> {
+  myLog('downloadAttachment.ts - downloadAttachment', { attachmentData });
+
   let downloaded;
   try {
     if (attachmentData.id) {

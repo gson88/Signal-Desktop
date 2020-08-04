@@ -46,6 +46,8 @@ let logger;
 const _activeAttachmentDownloadJobs = {};
 
 async function start(options = {}) {
+  myLog('start', options);
+
   ({ getMessageReceiver, logger } = options);
   if (!isFunction(getMessageReceiver)) {
     throw new Error(
@@ -73,6 +75,8 @@ async function stop() {
 }
 
 async function addJob(attachment, job = {}) {
+  myLog('addJob', attachment, job);
+
   if (!attachment) {
     throw new Error('attachments_download/addJob: attachment is required');
   }
@@ -136,6 +140,7 @@ async function _maybeStartJob() {
   if (nextJobs.length <= 0) {
     return;
   }
+  myLog('nextJobs:', nextJobs)
 
   // To prevent the race condition caused by two parallel database calls, eached kicked
   //   off because the jobCount wasn't at the max.

@@ -213,6 +213,7 @@ exports.deleteData = deleteOnDisk => {
 
 exports.isVoiceMessage = AttachmentTS.isVoiceMessage;
 exports.save = AttachmentTS.save;
+exports.saveMultiple = AttachmentTS.saveMultiple;
 
 const THUMBNAIL_SIZE = 150;
 const THUMBNAIL_CONTENT_TYPE = 'image/png';

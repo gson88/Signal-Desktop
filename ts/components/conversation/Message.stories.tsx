@@ -61,6 +61,7 @@ const makeDefaultActionProps = (): PropsActions => ({
   showContactDetail: action('showContactDetail'),
   showVisualAttachment: action('showVisualAttachment'),
   downloadAttachment: action('downloadAttachment'),
+  downloadMultipleAttachments: action('downloadMultipleAttachments'),
   displayTapToViewMessage: action('displayTapToViewMessage'),
   openLink: action('openLink'),
   scrollToQuotedMessage: action('scrollToQuotedMessage'),
