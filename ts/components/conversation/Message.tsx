@@ -33,12 +33,12 @@ import {
   isImage,
   isImageAttachment,
   isVideo,
-} from '../../types/Attachment';
+} from '../../../ts/types/Attachment';
 import { AttachmentType } from '../../types/Attachment';
 import { ContactType } from '../../types/Contact';
 
 import { getIncrement } from '../../util/timer';
-import { isFileDangerous } from '../../util';
+import { isFileDangerous } from '../../util/isFileDangerous';
 import { ColorType, LocalizerType } from '../../types/Util';
 import { createRefMerger } from '../_util';
 import { ContextMenu, ContextMenuTrigger, MenuItem } from 'react-contextmenu';
