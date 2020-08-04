@@ -9,6 +9,7 @@ import {
   isVideoTypeSupported,
 } from '../util/GoogleChrome';
 import { LocalizerType } from './Util';
+import { saveMultipleAttachmentsToDisk } from '../../app/attachments';
 
 const MAX_WIDTH = 300;
 const MAX_HEIGHT = MAX_WIDTH * 1.5;
@@ -364,10 +365,7 @@ export const save = async ({
 export interface MultipleAttachmentsType {
   attachments: Attachment[];
   readAttachmentData: (relativePath: string) => Promise<ArrayBuffer>;
-  saveMultipleAttachmentsToDisk: (options: {
-    attachments: Attachment[];
-    timestamp: number;
-  }) => Promise<{ name: string; fullPath: string }[]>;
+  saveMultipleAttachmentsToDisk: typeof saveMultipleAttachmentsToDisk;
   timestamp: number;
 }
 
@@ -376,7 +374,10 @@ export const saveMultiple = async ({
   timestamp,
   readAttachmentData,
   saveMultipleAttachmentsToDisk,
-}: MultipleAttachmentsType): Promise<{ name: string; fullPath: string }[]> => {
+}: MultipleAttachmentsType): Promise<
+  { fillPath: string; name: string }[] | null
+> => {
+  // @ts-ignore
   myLog('Attachments.ts - saveMultiple', {
     attachments,
     readAttachmentData,
@@ -384,46 +385,19 @@ export const saveMultiple = async ({
   });
 
   const dataPromises = attachments.map(
-    async (attachment, index): Promise<Attachment> => ({
+    async (attachment): Promise<Attachment> => ({
+      ...attachment,
       data: attachment.path
         ? await readAttachmentData(attachment.path)
         : attachment.data,
-      fileName: getSuggestedFilename({ attachment, index, timestamp }),
-      contentType: attachment.contentType,
     })
   );
 
   const datas = await Promise.all(dataPromises);
-
-  const filePaths = await saveMultipleAttachmentsToDisk({
+  return await saveMultipleAttachmentsToDisk({
     attachments: datas,
     timestamp,
   });
-  return filePaths;
-  // const promises = attachments.map(async attachment => {
-  //   if (!attachment.path && !attachment.data) {
-  //     throw new Error('Attachment had neither path nor data');
-  //   }
-  //
-  //   const data = attachment.path
-  //     ? await readAttachmentData(attachment.path)
-  //     : attachment.data;
-  //   const name = getSuggestedFilename({ attachment, timestamp, index });
-  //
-  //   const result = await saveAttachmentToDisk({
-  //     data,
-  //     name,
-  //   });
-  //
-  //   if (!result) {
-  //     return null;
-  //   }
-  //
-  //   return result.fullPath;
-  // });
-  //
-  // const result = await Promise.all(promises);
-  // return result;
 };
 
 export const getSuggestedFilename = ({

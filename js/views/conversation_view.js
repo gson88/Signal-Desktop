@@ -2106,15 +2106,19 @@
       }
     },
 
-    async downloadMultipleAttachments({ attachments, timestamp, isDangerous }) {
+    async downloadMultipleAttachments({
+      attachments,
+      timestamp,
+      isAnyFileDangerous,
+    }) {
       myLog('ConversationView - downloadMultipleAttachments', {
         attachments,
         timestamp,
-        isDangerous,
+        isAnyFileDangerous,
         saveMultipleAttachmentsToDisk,
       });
 
-      if (isDangerous) {
+      if (isAnyFileDangerous) {
         this.showToast(Whisper.DangerousFileTypeToast);
         return;
       }
@@ -2126,13 +2130,7 @@
         timestamp,
       });
 
-      myLog({
-        writtenFiles,
-        // attachments,
-        // timestamp,
-        // isDangerous,
-        // fullPath2,
-      });
+      myLog({ writtenFiles });
 
       if (writtenFiles) {
         this.showToast(Whisper.FileSavedToast, { fullPath: 'Lots' });

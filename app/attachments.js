@@ -265,11 +265,14 @@ exports.saveAttachmentToDisk = async ({ data, name }) => {
 
 /**
  * @param {Attachment[]} attachments
- * @param timestamp
- * @returns {Promise<unknown[]|null>}
+ * @param {number} timestamp
+ * @returns {Promise<{fillPath: string,name:string}[]|null>}
  */
 exports.saveMultipleAttachmentsToDisk = async ({ attachments, timestamp }) => {
-  myLog('saveMultipleAttachmentsToDisk', { attachments, timestamp });
+  console.log('app/attachments.js - saveMultipleAttachmentsToDisk', {
+    attachments,
+    timestamp,
+  });
   const dialogToUse = dialog || remote.dialog;
   const browserWindow = remote.getCurrentWindow();
 
@@ -277,7 +280,7 @@ exports.saveMultipleAttachmentsToDisk = async ({ attachments, timestamp }) => {
     browserWindow,
     {
       defaultPath: name,
-      properties: ['openDirectory'],
+      properties: ['openDirectory', 'createDirectory'],
       filters: ['/'],
     }
   );
@@ -287,22 +290,25 @@ exports.saveMultipleAttachmentsToDisk = async ({ attachments, timestamp }) => {
   }
 
   myLog({ filePaths });
+  if (filePaths.length !== 1) {
+    return null;
+  }
 
-  const folder = filePaths[0];
+  const folderPath = filePaths[0];
 
-  const promises = attachments.map(async (attachment, index) => {
-    const fileName = getSuggestedFilename({ attachment, timestamp, index });
-    const fullPath = path.join(folder, fileName);
-    myLog('writing file:', fullPath, attachment);
-    await writeWithAttributes(fullPath, Buffer.from(attachment.data));
+  return Promise.all(
+    attachments.map(async (attachment, index) => {
+      const fileName = getSuggestedFilename({ attachment, timestamp, index });
+      const fullPath = path.join(folderPath, fileName);
+      myLog('writing file:', fullPath, attachment);
+      await writeWithAttributes(fullPath, Buffer.from(attachment.data));
 
-    return {
-      fullPath,
-      name: fileName,
-    };
-  });
-
-  return Promise.all(promises);
+      return {
+        fullPath,
+        name: fileName,
+      };
+    })
+  );
 };
 
 exports.openFileInFolder = async target => {
